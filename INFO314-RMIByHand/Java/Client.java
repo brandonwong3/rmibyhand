@@ -3,7 +3,6 @@
 
 import java.io.*;
 import java.net.*;
-import java.util.Objects;
 
 public class Client {
 
@@ -22,27 +21,27 @@ public class Client {
             // Get the result from the server
             Object result = in.readObject();
 
+
+            // Check if the type of result is an ArithmeticException
+            // If so, throw the ArithmeticException
+
+//            if (result instanceof ArithmeticException) {
+//                throw new ArithmeticException();
+//            }
+
             // Make sure to throw the ArithmeticException for the division error.
-            if (result instanceof ArithmeticException) {
-                throw (ArithmeticException) result;
-            } else if (result instanceof Throwable) {
+            if (result instanceof Throwable) {
                 throw (Throwable) result;
             }
             return result;
-        } catch (Exception err) {
-            System.err.println("Error: " + err.getMessage());
+        } catch (ArithmeticException arithmeticException) {
+            throw arithmeticException;
         } catch (Throwable e) {
-            throw new RuntimeException(e);
-        }
-
-        // Close streams
-
-        if (Objects.equals(methodName, "add") || Objects.equals(methodName, "divide"))
-            return -1;
-        else if (Objects.equals(methodName, "echo"))
-            return "";
-        else
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
             return null;
+        }
     }
 
     public static int add(int lhs, int rhs) {

@@ -1,6 +1,5 @@
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 public class Server {
 
@@ -10,8 +9,6 @@ public class Server {
                 try (Socket socket = server.accept();
                      ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
                      ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream())
-                     // Get the remote method object
-
                 ) {
                     RemoteMethod remoteMethod = (RemoteMethod) inputStream.readObject();
 
@@ -40,7 +37,6 @@ public class Server {
                     }
 
                     // Output stream
-
                     outputStream.writeObject(result);
                 } catch (IOException | ClassNotFoundException e) {
                     System.err.println("Error: " + e.getMessage());
