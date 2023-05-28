@@ -3,132 +3,58 @@
 
 import java.io.*;
 import java.net.*;
+import java.util.Objects;
 
 public class Client {
-    public static int add(int lhs, int rhs) {
-        RemoteMethod add = new RemoteMethod("add", new Object[]{lhs, rhs}, new Object[]{-1});
-
-        try(Socket socket = new Socket("localhost", 10314)) {
-            try (
-            OutputStream os = socket.getOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(os);) {
-            
-                oos.writeObject(add);
-                oos.flush();
-
-                try(InputStream fis = socket.getInputStream();
-                ObjectInputStream ois = new ObjectInputStream(fis);) {
-                    RemoteMethod obj = (RemoteMethod) ois.readObject();
-
-                    Object[] results = obj.getResult();
-                    fis.close();
-        
-                    return (Integer)results[0];
-                } catch (Exception err) {
-                    err.printStackTrace();
-                }
-                os.close();
-            } catch(IOException ex) {
-                ex.printStackTrace();
-            }
-            socket.close();
-        } catch (Exception err) {
-            System.out.println("Server not running; Run program to start");
-        }
-
-        return -1;
-    }
-
-    public static int divide(int num, int denom) {
-        RemoteMethod divide = new RemoteMethod("divide", new Object[]{num, denom}, new Object[]{-1});
-
-        try(Socket socket = new Socket("localhost", 10314)) {
-            try (
-            OutputStream os = socket.getOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(os);) {
-            
-                oos.writeObject(divide);
-                oos.flush();
-
-                try(InputStream fis = socket.getInputStream();
-                ObjectInputStream ois = new ObjectInputStream(fis);) {
-                    RemoteMethod obj = (RemoteMethod) ois.readObject();
-
-                    Object[] results = obj.getResult();
-                    fis.close();
-
-                    return (Integer)results[0];
-                } catch (Exception err) {
-                    err.printStackTrace();
-                }
-                os.close();
-            } catch(IOException ex) {
-                ex.printStackTrace();
-            }
-            socket.close();
-        } catch (Exception err) {
-            System.out.println("Server not running; Run program to start");
-        }
-
-        return -1;
-    }
-
-    public static String echo(String message) {
-        RemoteMethod echo = new RemoteMethod("echo", new Object[]{message}, new Object[]{""});
-
-        try(Socket socket = new Socket("localhost", 10314)) {
-            try (
-            OutputStream os = socket.getOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(os);) {
-            
-                oos.writeObject(echo);
-                oos.flush();
-
-                try(InputStream fis = socket.getInputStream();
-                ObjectInputStream ois = new ObjectInputStream(fis);) {
-                    RemoteMethod obj = (RemoteMethod) ois.readObject();
-
-                    Object[] results = obj.getResult();
-                    fis.close();
-
-                    return (String)results[0];
-                } catch (Exception err) {
-                    err.printStackTrace();
-                }
-                os.close();
-            } catch(IOException ex) {
-                ex.printStackTrace();
-            }
-            socket.close();
-        } catch (Exception err) {
-            System.out.println("Server not running; Run program to start");
-        }
-
-        return "";
-    }
 
     // Simplified caller method
     private static Object rpcCaller(String methodName, Object... args) {
         try (Socket socket = new Socket(server, PORT);
-             OutputStream os = socket.getOutputStream();
-             ObjectOutputStream oos = new ObjectOutputStream(os);
-             InputStream fis = socket.getInputStream();
-             ObjectInputStream ois = new ObjectInputStream(fis);) {
+             OutputStream outStream = socket.getOutputStream();
+             ObjectOutputStream out = new ObjectOutputStream(outStream);
+             InputStream inStream = socket.getInputStream();
+             ObjectInputStream in = new ObjectInputStream(inStream)) {
 
-            RemoteMethod remoteMethod = new RemoteMethod(methodName, args, new Object[]{""});
-            oos.writeObject(remoteMethod);
-            oos.flush();
+            // Send the method name and arguments to the server
+            RemoteMethod temp = new RemoteMethod(methodName, args);
+            out.writeObject(temp);
 
-            RemoteMethod obj = (RemoteMethod) ois.readObject();
-            Object[] results = obj.getResult();
-            fis.close();
+            // Get the result from the server
+            Object result = in.readObject();
 
-            return results[0];
+            // Make sure to throw the ArithmeticException for the division error.
+            if (result instanceof ArithmeticException) {
+                throw (ArithmeticException) result;
+            } else if (result instanceof Throwable) {
+                throw (Throwable) result;
+            }
+            return result;
         } catch (Exception err) {
-            err.printStackTrace();
+            System.err.println("Error: " + err.getMessage());
+        } catch (Throwable e) {
+            throw new RuntimeException(e);
         }
 
-        return null;
+        // Close streams
+
+        if (Objects.equals(methodName, "add") || Objects.equals(methodName, "divide"))
+            return -1;
+        else if (Objects.equals(methodName, "echo"))
+            return "";
+        else
+            return null;
+    }
+
+    public static int add(int lhs, int rhs) {
+        return (int) rpcCaller("add", lhs, rhs);
+    }
+
+    public static int divide(int num, int denom) {
+        return (int) rpcCaller("divide", num, denom);
+    }
+
+    public static String echo(String message) {
+        return (String) rpcCaller("echo", message);
     }
 
     static String server = "localhost";
@@ -154,7 +80,7 @@ public class Client {
             System.out.print(".");
         else
             System.out.print("X");
-        
         System.out.println(" Finished");
     }
-} 
+
+}
