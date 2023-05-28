@@ -5,17 +5,48 @@ import java.util.*;
 public class Server {
 
     public static void main(String[] args) {
-        try {
-            ServerSocket server = new ServerSocket(10314);
-            Socket socket = null;
+        try (ServerSocket server = new ServerSocket(10314)) {
+            while (true) {
+                Socket socket = server.accept();
+                new Thread(() -> handleTCPRequest(socket)).start();
 
-            while((socket = server.accept()) != null) {
-                final Socket threadSocket = socket;
-                new Thread( () -> handleTCPRequest(threadSocket)).start();
+                // Get the input stream
+                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
+
+                // Get the remote method object
+                RemoteMethod remoteMethod = (RemoteMethod) inputStream.readObject();
+
+                // We get the items now
+                String methodName = remoteMethod.getMethodName();
+                Object[] arguments = remoteMethod.getArguments();
+                Object[] result = remoteMethod.getResult();
+
+                // Do the operation
+                try {
+                    switch (methodName) {
+                        case "echo":
+                            result[0] = echo((String) arguments[0]);
+                            break;
+                        case "add":
+                            result[0] = add((Integer) arguments[0], (Integer) arguments[1]);
+                            break;
+                        case "divide":
+                            result[0] = divide((Integer) arguments[0], (Integer) arguments[1]);
+                            break;
+                        default:
+                            throw new Exception("Invalid method name: " + methodName);
+                    }
+                } catch (Throwable caughtError) {
+                    result = new Object[]{caughtError};
+                }
+
+                // Output stream
+                ObjectOutputStream outputStream = new ObjectOutputStream(socket.getOutputStream());
+                outputStream.writeObject(result);
             }
-            server.close();
+
         } catch (Exception err) {
-            err.printStackTrace();
+            System.out.println("Server error: " + err.getMessage());
         }
     }
 

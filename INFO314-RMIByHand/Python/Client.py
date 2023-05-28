@@ -1,3 +1,5 @@
+# This is the RCP Client
+
 def add(lhs, rhs):
     return -1
 
@@ -12,7 +14,7 @@ def echo(msg):
 # and should not need modification
 
 print("Starting Client...")
-if (add(2, 4) == 6):
+if add(2, 4) == 6:
     print(".")
 else:
     print("X")

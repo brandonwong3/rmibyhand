@@ -1,6 +1,8 @@
+// We are writing a Client that will be able to execute a procedure (static method) on a remote server and receive the response.
+// This assignment is an example of Remote Procedure Call (RPC).
+
 import java.io.*;
 import java.net.*;
-import java.util.*;
 
 public class Client {
     public static int add(int lhs, int rhs) {
@@ -105,7 +107,31 @@ public class Client {
         return "";
     }
 
-    String server = "localhost";
+    // Simplified caller method
+    private static Object rpcCaller(String methodName, Object... args) {
+        try (Socket socket = new Socket(server, PORT);
+             OutputStream os = socket.getOutputStream();
+             ObjectOutputStream oos = new ObjectOutputStream(os);
+             InputStream fis = socket.getInputStream();
+             ObjectInputStream ois = new ObjectInputStream(fis);) {
+
+            RemoteMethod remoteMethod = new RemoteMethod(methodName, args, new Object[]{""});
+            oos.writeObject(remoteMethod);
+            oos.flush();
+
+            RemoteMethod obj = (RemoteMethod) ois.readObject();
+            Object[] results = obj.getResult();
+            fis.close();
+
+            return results[0];
+        } catch (Exception err) {
+            err.printStackTrace();
+        }
+
+        return null;
+    }
+
+    static String server = "localhost";
     public static final int PORT = 10314;
 
     public static void main(String... args) {
