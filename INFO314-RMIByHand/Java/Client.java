@@ -21,14 +21,6 @@ public class Client {
             // Get the result from the server
             Object result = in.readObject();
 
-
-            // Check if the type of result is an ArithmeticException
-            // If so, throw the ArithmeticException
-
-//            if (result instanceof ArithmeticException) {
-//                throw new ArithmeticException();
-//            }
-
             // Make sure to throw the ArithmeticException for the division error.
             if (result instanceof Throwable) {
                 throw (Throwable) result;

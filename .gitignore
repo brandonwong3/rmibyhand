@@ -2,3 +2,6 @@
 *.DS_Store
 out/
 rmibyhand.iml
+
+*/venv/
+venv/
