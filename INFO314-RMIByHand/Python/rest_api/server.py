@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 import sys
 
-
+"""
 # The payload format:
 #   {
 #       "operation": "add",     # Either "add", "subtract", "multiply", "divide", "modulo", or "answer"
@@ -11,6 +11,7 @@ import sys
 #   }
 #
 #
+"""
 
 
 app = Flask(__name__)
@@ -37,7 +38,9 @@ def calculator_route():
 		# Check if all operands are numbers
 		for operand in operands:
 			if not isinstance(operand, (int, float)):
-				return jsonify({'error': 'Invalid operand'}), 400
+				return jsonify({'error': f'{str(operand)} is not a valid argument type'}), 400
+			elif operand < -1 * sys.maxsize or operand > sys.maxsize:
+				return jsonify({'error': 'Operand too large or too small'}), 400
 
 		# Add
 		if operation == 'add':
@@ -94,7 +97,6 @@ def calculator_route():
 @app.errorhandler(404)
 def route_not_found(_):
 	return jsonify({'error': 'Endpoint not found'}), 404
-
 
 
 if __name__ == "__main__":
