@@ -47,9 +47,9 @@ def rpc_route():
 			value.text = 'illegal argument type'
 			return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
 		# Get the method parameters. They should all be i4 types
+		i4_method_parameters = xml_request.xpath('//params/param/value/i4')
 
 		if method_name == 'add':
-			i4_method_parameters = xml_request.xpath('//params/param/value/i4')
 			# If there are zero parameters, then return 0
 			if len(i4_method_parameters) == 0:
 				# Create XML to return just 0
@@ -83,8 +83,186 @@ def rpc_route():
 				i4.text = str(total_sum)
 				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
 
-		method_parameters = xml_request.xpath('//params/param/value')
-		# Do the calculations
+		elif method_name == "subtract":
+			# If there are zero parameters, then return 0
+			if len(i4_method_parameters) == 0:
+				# Create XML to return just 0
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = '0'
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+			# If there is just one parameter, then return the parameter
+			if len(i4_method_parameters) == 1:
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = i4_method_parameters[0].text
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+			# If there are two parameters, then subtract the second from the first
+			if len(i4_method_parameters) == 2:
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = str(int(i4_method_parameters[0].text) - int(i4_method_parameters[1].text))
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+			# For more than two parameters, return an error
+			else:
+				xml_response = etree.Element('methodResponse')
+				fault = etree.SubElement(xml_response, 'fault')
+				value = etree.SubElement(fault, 'value')
+				struct = etree.SubElement(value, 'struct')
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultCode'
+				value = etree.SubElement(member, 'value')
+				value.text = '3'
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultString'
+				value = etree.SubElement(member, 'value')
+				value.text = 'illegal argument type'
+				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
+
+		elif method_name == 'multiply':
+			if len(i4_method_parameters) == 0:
+				# Create XML to return just 1
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = '1'
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+			elif len(i4_method_parameters) == 1:
+				# Return the original value
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = i4_method_parameters[0].text
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+			else:
+				# Multiply the parameters
+				total_product = 1
+				for i4_method_parameter in i4_method_parameters:
+					total_product *= int(i4_method_parameter.text)
+				# Create the XML response
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = str(total_product)
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+
+		elif method_name == 'divide':
+			if len(i4_method_parameters) != 2:
+				# Return an error with invalid number of parameters
+				xml_response = etree.Element('methodResponse')
+				fault = etree.SubElement(xml_response, 'fault')
+				value = etree.SubElement(fault, 'value')
+				struct = etree.SubElement(value, 'struct')
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultCode'
+				value = etree.SubElement(member, 'value')
+				value.text = '3'
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultString'
+				value = etree.SubElement(member, 'value')
+				value.text = 'Invalid number of parameters'
+				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
+			elif int(i4_method_parameters[1].text) == 0:
+				# Return a faultCode of 1 and a faultString of "divide by zero"
+				xml_response = etree.Element('methodResponse')
+				fault = etree.SubElement(xml_response, 'fault')
+				value = etree.SubElement(fault, 'value')
+				struct = etree.SubElement(value, 'struct')
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultCode'
+				value = etree.SubElement(member, 'value')
+				value.text = '1'
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultString'
+				value = etree.SubElement(member, 'value')
+				value.text = 'divide by zero'
+				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
+			else:
+				# Divide the first parameter by the second parameter
+				quotient = int(i4_method_parameters[0].text) / int(i4_method_parameters[1].text)
+				# Create the XML response
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = str(quotient)
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+
+		elif method_name == 'module':
+			# Optionally, I put this in—even though it was not in the specification—because it is a common error handler.
+			if len(i4_method_parameters) != 2:
+				# Return an error with invalid number of parameters
+				xml_response = etree.Element('methodResponse')
+				fault = etree.SubElement(xml_response, 'fault')
+				value = etree.SubElement(fault, 'value')
+				struct = etree.SubElement(value, 'struct')
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultCode'
+				value = etree.SubElement(member, 'value')
+				value.text = '3'
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultString'
+				value = etree.SubElement(member, 'value')
+				value.text = 'Invalid number of parameters'
+				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
+			elif int(i4_method_parameters[1].text) == 0:
+				# Return a faultCode of 1 and a faultString of "divide by zero"
+				xml_response = etree.Element('methodResponse')
+				fault = etree.SubElement(xml_response, 'fault')
+				value = etree.SubElement(fault, 'value')
+				struct = etree.SubElement(value, 'struct')
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultCode'
+				value = etree.SubElement(member, 'value')
+				value.text = '1'
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultString'
+				value = etree.SubElement(member, 'value')
+				value.text = 'divide by zero'
+				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
+		else:
+			# No method name was found, so return an error
+			xml_response = etree.Element('methodResponse')
+			fault = etree.SubElement(xml_response, 'fault')
+			value = etree.SubElement(fault, 'value')
+			struct = etree.SubElement(value, 'struct')
+			member = etree.SubElement(struct, 'member')
+			name = etree.SubElement(member, 'name')
+			name.text = 'faultCode'
+			value = etree.SubElement(member, 'value')
+			value.text = '2'
+			member = etree.SubElement(struct, 'member')
+			name = etree.SubElement(member, 'name')
+			name.text = 'faultString'
+			value = etree.SubElement(member, 'value')
+			value.text = 'Method not found'
+			return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
 
 	except Exception as e:
 		xml_response = etree.Element('methodResponse')
