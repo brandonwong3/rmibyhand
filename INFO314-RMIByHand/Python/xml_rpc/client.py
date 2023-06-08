@@ -319,8 +319,6 @@ if __name__ == "__main__":
 		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
 		print(f"Fault code: {fault_code}")
 		print(f"Fault string: {fault_string}")
-		
-
 
 	except KeyboardInterrupt:
 		print("Keyboard interrupt detected. Exiting...")
