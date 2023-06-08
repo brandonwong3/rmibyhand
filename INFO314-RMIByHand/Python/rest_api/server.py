@@ -6,11 +6,9 @@ import sys
 #   {
 #       "operation": "add",     # Either "add", "subtract", "multiply", "divide", "modulo", or "answer"
 #       "operands": [1, 2],     # Either empty or full of numbers
-#	    "error": "Invalid operation,
+#	    "error": "Invalid operation",
 #		"value": 3
 #   }
-#
-#
 """
 
 

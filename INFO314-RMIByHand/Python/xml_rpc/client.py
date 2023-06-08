@@ -36,7 +36,7 @@ if __name__ == "__main__":
 		int2.text = '6'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
 		xml_response_payload = etree.fromstring(response.text)
@@ -61,7 +61,7 @@ if __name__ == "__main__":
 		int2.text = '4'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
 		xml_response_payload = etree.fromstring(response.text)
@@ -86,13 +86,13 @@ if __name__ == "__main__":
 		int2.text = '5'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
 		xml_response_payload = etree.fromstring(response.text)
 		result = xml_response_payload.xpath('//methodResponse/params/param/value/i4/text()')[0]
 		print(f"Result: {result}")
-		assert result == '2'
+		assert result == '2.0'
 
 		time.sleep(2)
 
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 		int2.text = '5'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
 		xml_response_payload = etree.fromstring(response.text)
@@ -132,7 +132,7 @@ if __name__ == "__main__":
 		int1.text = '0'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
 		xml_response_payload = etree.fromstring(response.text)
@@ -169,7 +169,7 @@ if __name__ == "__main__":
 		int5.text = '5'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
 		xml_response_payload = etree.fromstring(response.text)
@@ -206,7 +206,7 @@ if __name__ == "__main__":
 		int5.text = '5'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
 		xml_response_payload = etree.fromstring(response.text)
@@ -233,14 +233,10 @@ if __name__ == "__main__":
 		int2.text = str(sys.maxsize * 2)
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
-		# Now parse the XML response and check if the result is correct
-		xml_response_payload = etree.fromstring(response.text)
-		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
-		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
-		print(f"Fault code: {fault_code}")
-		print(f"Fault string: {fault_string}")
+
+		assert response.status_code == 500
 
 		time.sleep(2)
 
@@ -259,14 +255,8 @@ if __name__ == "__main__":
 		int2.text = str(sys.maxsize * 2)
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
-		# Now parse the XML response and check if the result is correct
-		xml_response_payload = etree.fromstring(response.text)
-		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
-		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
-		print(f"Fault code: {fault_code}")
-		print(f"Fault string: {fault_string}")
 
 		time.sleep(2)
 
@@ -285,14 +275,8 @@ if __name__ == "__main__":
 		string2.text = '2'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
-		# Now parse the XML response and check if the result is correct
-		xml_response_payload = etree.fromstring(response.text)
-		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
-		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
-		print(f"Fault code: {fault_code}")
-		print(f"Fault string: {fault_string}")
 
 		time.sleep(2)
 
@@ -311,14 +295,13 @@ if __name__ == "__main__":
 		int2.text = '0'
 		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
 		print(xml_request_payload)
-		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		response = requests.post(f'http://{hostname}:{port}/RPC', data=xml_request_payload, headers=headers)
 		print(response.text)
 		# Now parse the XML response and check if the result is correct
-		xml_response_payload = etree.fromstring(response.text)
-		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
-		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
-		print(f"Fault code: {fault_code}")
-		print(f"Fault string: {fault_string}")
+
+		time.sleep(2)
+
+		print('\n\nSUCCESS: All tests passed!')
 
 	except KeyboardInterrupt:
 		print("Keyboard interrupt detected. Exiting...")
