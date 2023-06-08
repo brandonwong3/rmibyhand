@@ -1,5 +1,6 @@
 from flask import Flask, request
 from lxml import etree
+import sys
 
 
 app = Flask(__name__)
@@ -48,6 +49,47 @@ def rpc_route():
 			return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
 		# Get the method parameters. They should all be i4 types
 		i4_method_parameters = xml_request.xpath('//params/param/value/i4')
+
+		# Check if any of the parameters are less than -sys.maxsize or greater than sys.maxsize
+		# If so, then trigger an overflow
+		for i4_method_parameter in i4_method_parameters:
+			if int(i4_method_parameter.text) < -1 * sys.maxsize or int(i4_method_parameter.text) > sys.maxsize:
+				# Create an overflow XML response
+				xml_response = etree.Element('methodResponse')
+				fault = etree.SubElement(xml_response, 'fault')
+				value = etree.SubElement(fault, 'value')
+				struct = etree.SubElement(value, 'struct')
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultCode'
+				value = etree.SubElement(member, 'value')
+				value.text = '1'
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultString'
+				value = etree.SubElement(member, 'value')
+				value.text = 'overflow'
+				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
+
+		# Check if all parameters are numbers
+		for i4_method_parameter in i4_method_parameters:
+			if not i4_method_parameter.text.isdigit():
+				# Create an illegal argument type XML response
+				xml_response = etree.Element('methodResponse')
+				fault = etree.SubElement(xml_response, 'fault')
+				value = etree.SubElement(fault, 'value')
+				struct = etree.SubElement(value, 'struct')
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultCode'
+				value = etree.SubElement(member, 'value')
+				value.text = '3'
+				member = etree.SubElement(struct, 'member')
+				name = etree.SubElement(member, 'name')
+				name.text = 'faultString'
+				value = etree.SubElement(member, 'value')
+				value.text = 'illegal argument type'
+				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
 
 		if method_name == 'add':
 			# If there are zero parameters, then return 0
@@ -319,4 +361,5 @@ def run_main():
 
 
 if __name__ == "__main__":
-	pass
+	print("Starting the backend server on port 8080...")
+	run_main()

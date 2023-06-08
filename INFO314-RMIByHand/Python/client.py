@@ -44,6 +44,8 @@ if __name__ == "__main__":
 		print(f"Result: {result}")
 		assert result == '6'
 
+		time.sleep(2)
+
 		# multiply(3, 4) = 12
 		xml_request_payload = etree.Element('methodCall')
 		method_name = etree.SubElement(xml_request_payload, 'methodName')
@@ -66,6 +68,8 @@ if __name__ == "__main__":
 		result = xml_response_payload.xpath('//methodResponse/params/param/value/i4/text()')[0]
 		print(f"Result: {result}")
 		assert result == '12'
+
+		time.sleep(2)
 
 		# divide(10, 5) = 2
 		xml_request_payload = etree.Element('methodCall')
@@ -90,6 +94,8 @@ if __name__ == "__main__":
 		print(f"Result: {result}")
 		assert result == '2'
 
+		time.sleep(2)
+
 		# modulo(10, 5) = 0
 		xml_request_payload = etree.Element('methodCall')
 		method_name = etree.SubElement(xml_request_payload, 'methodName')
@@ -113,6 +119,8 @@ if __name__ == "__main__":
 		print(f"Result: {result}")
 		assert result == '0'
 
+		time.sleep(2)
+
 		# add(0) = 0
 		xml_request_payload = etree.Element('methodCall')
 		method_name = etree.SubElement(xml_request_payload, 'methodName')
@@ -131,6 +139,8 @@ if __name__ == "__main__":
 		result = xml_response_payload.xpath('//methodResponse/params/param/value/i4/text()')[0]
 		print(f"Result: {result}")
 		assert result == '0'
+
+		time.sleep(2)
 
 		# add(1, 2, 3, 4, 5) = 15
 		xml_request_payload = etree.Element('methodCall')
@@ -167,6 +177,8 @@ if __name__ == "__main__":
 		print(f"Result: {result}")
 		assert result == '15'
 
+		time.sleep(2)
+
 		# multiply(1, 2, 3, 4, 5) = 120
 		xml_request_payload = etree.Element('methodCall')
 		method_name = etree.SubElement(xml_request_payload, 'methodName')
@@ -202,6 +214,112 @@ if __name__ == "__main__":
 		print(f"Result: {result}")
 		assert result == '120'
 
+		time.sleep(2)
+
+		# Testing error handling
+
+		# Add two very large numbers such that it triggers an overflow
+		xml_request_payload = etree.Element('methodCall')
+		method_name = etree.SubElement(xml_request_payload, 'methodName')
+		method_name.text = 'add'
+		params = etree.SubElement(xml_request_payload, 'params')
+		param1 = etree.SubElement(params, 'param')
+		value1 = etree.SubElement(param1, 'value')
+		int1 = etree.SubElement(value1, 'i4')
+		int1.text = str(sys.maxsize * 2)
+		param2 = etree.SubElement(params, 'param')
+		value2 = etree.SubElement(param2, 'value')
+		int2 = etree.SubElement(value2, 'i4')
+		int2.text = str(sys.maxsize * 2)
+		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
+		print(xml_request_payload)
+		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		print(response.text)
+		# Now parse the XML response and check if the result is correct
+		xml_response_payload = etree.fromstring(response.text)
+		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
+		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
+		print(f"Fault code: {fault_code}")
+		print(f"Fault string: {fault_string}")
+
+		time.sleep(2)
+
+		# Test that multiplying two very large numbers triggers an overflow
+		xml_request_payload = etree.Element('methodCall')
+		method_name = etree.SubElement(xml_request_payload, 'methodName')
+		method_name.text = 'multiply'
+		params = etree.SubElement(xml_request_payload, 'params')
+		param1 = etree.SubElement(params, 'param')
+		value1 = etree.SubElement(param1, 'value')
+		int1 = etree.SubElement(value1, 'i4')
+		int1.text = str(sys.maxsize * 2)
+		param2 = etree.SubElement(params, 'param')
+		value2 = etree.SubElement(param2, 'value')
+		int2 = etree.SubElement(value2, 'i4')
+		int2.text = str(sys.maxsize * 2)
+		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
+		print(xml_request_payload)
+		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		print(response.text)
+		# Now parse the XML response and check if the result is correct
+		xml_response_payload = etree.fromstring(response.text)
+		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
+		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
+		print(f"Fault code: {fault_code}")
+		print(f"Fault string: {fault_string}")
+
+		time.sleep(2)
+
+		# Test that subtraction taking two string parameters should trigger illegal argument fault
+		xml_request_payload = etree.Element('methodCall')
+		method_name = etree.SubElement(xml_request_payload, 'methodName')
+		method_name.text = 'subtract'
+		params = etree.SubElement(xml_request_payload, 'params')
+		param1 = etree.SubElement(params, 'param')
+		value1 = etree.SubElement(param1, 'value')
+		string1 = etree.SubElement(value1, 'string')
+		string1.text = '1'
+		param2 = etree.SubElement(params, 'param')
+		value2 = etree.SubElement(param2, 'value')
+		string2 = etree.SubElement(value2, 'string')
+		string2.text = '2'
+		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
+		print(xml_request_payload)
+		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		print(response.text)
+		# Now parse the XML response and check if the result is correct
+		xml_response_payload = etree.fromstring(response.text)
+		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
+		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
+		print(f"Fault code: {fault_code}")
+		print(f"Fault string: {fault_string}")
+
+		time.sleep(2)
+
+		# Test division by zero
+		xml_request_payload = etree.Element('methodCall')
+		method_name = etree.SubElement(xml_request_payload, 'methodName')
+		method_name.text = 'divide'
+		params = etree.SubElement(xml_request_payload, 'params')
+		param1 = etree.SubElement(params, 'param')
+		value1 = etree.SubElement(param1, 'value')
+		int1 = etree.SubElement(value1, 'i4')
+		int1.text = '1'
+		param2 = etree.SubElement(params, 'param')
+		value2 = etree.SubElement(param2, 'value')
+		int2 = etree.SubElement(value2, 'i4')
+		int2.text = '0'
+		xml_request_payload = etree.tostring(xml_request_payload, pretty_print=True)
+		print(xml_request_payload)
+		response = requests.post(f'http://{hostname}:{port}', data=xml_request_payload, headers=headers)
+		print(response.text)
+		# Now parse the XML response and check if the result is correct
+		xml_response_payload = etree.fromstring(response.text)
+		fault_code = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/name/text()')[0]
+		fault_string = xml_response_payload.xpath('//methodResponse/fault/value/struct/member/value/string/text()')[0]
+		print(f"Fault code: {fault_code}")
+		print(f"Fault string: {fault_string}")
+		
 
 
 	except KeyboardInterrupt:
