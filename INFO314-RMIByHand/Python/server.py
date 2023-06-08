@@ -210,7 +210,7 @@ def rpc_route():
 				i4.text = str(quotient)
 				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
 
-		elif method_name == 'module':
+		elif method_name == 'modulo':
 			# Optionally, I put this in—even though it was not in the specification—because it is a common error handler.
 			if len(i4_method_parameters) != 2:
 				# Return an error with invalid number of parameters
@@ -246,6 +246,18 @@ def rpc_route():
 				value = etree.SubElement(member, 'value')
 				value.text = 'divide by zero'
 				return etree.tostring(xml_response, pretty_print=True), 500, {'Content-Type': 'text/xml'}
+			else:
+				# Perform the modulo operation and return the value
+				modulo = int(i4_method_parameters[0].text) % int(i4_method_parameters[1].text)
+				# Create the XML response
+				xml_response = etree.Element('methodResponse')
+				params = etree.SubElement(xml_response, 'params')
+				param = etree.SubElement(params, 'param')
+				value = etree.SubElement(param, 'value')
+				i4 = etree.SubElement(value, 'i4')
+				i4.text = str(modulo)
+				return etree.tostring(xml_response, pretty_print=True), 200, {'Content-Type': 'text/xml'}
+
 		else:
 			# No method name was found, so return an error
 			xml_response = etree.Element('methodResponse')
